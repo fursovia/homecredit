@@ -13,13 +13,13 @@ from model.utils import Params
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_dir', default='experiments',
+parser.add_argument('--model_dir', default='/data/i.fursov/hc/experiments',
                     help="Experiment directory containing params.json")
-parser.add_argument('--data_dir', default='data',
+parser.add_argument('--data_dir', default='/data/i.fursov/hc/data',
                     help="Directory containing the dataset")
 parser.add_argument('--final_train', default='N',
                     help="Whether to train on a whole dataset")
-parser.add_argument('--num_gpus', default=4,
+parser.add_argument('--num_gpus', type=int, default=4,
                     help="Number of GPUs to train on")
 
 
