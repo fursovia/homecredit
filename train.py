@@ -19,7 +19,7 @@ parser.add_argument('--data_dir', default='data',
                     help="Directory containing the dataset")
 parser.add_argument('--final_train', default='N',
                     help="Whether to train on a whole dataset")
-parser.add_argument('--num_gpus', default=1,
+parser.add_argument('--num_gpus', default=4,
                     help="Number of GPUs to train on")
 
 
