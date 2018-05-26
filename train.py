@@ -5,7 +5,7 @@ import os
 
 import tensorflow as tf
 from model.input_fn import train_input_fn
-from model.input_fn import test_input_fn
+from model.input_fn import eval_input_fn
 from model.input_fn import final_train_input_fn
 from model.model_fn import model_fn
 from model.utils import save_dict_to_json
@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
         # Evaluate the model on the test set
         tf.logging.info("Evaluation on test set.")
-        res = estimator.evaluate(lambda: test_input_fn(args.data_dir, params))
+        res = estimator.evaluate(lambda: eval_input_fn(args.data_dir, params))
 
         metrics_values = {k: v for k, v in res.items()}
         metrics_json_path = os.path.join(args.model_dir, "metrics.json")
