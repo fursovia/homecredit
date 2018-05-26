@@ -5,10 +5,28 @@ import numpy as np
 import pickle
 import argparse
 import os
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='/data/i.fursov/hc/data',
                     help="Directory containing the dataset")
+
+
+def process_dataframe(input_df, encoder_dict=None):
+    """Deal with categorical features"""
+
+    categorical_feats = input_df.columns[input_df.dtypes == 'object']
+    categorical_feats = categorical_feats
+    encoder_dict = {}
+    for feat in categorical_feats:
+        encoder = LabelEncoder()
+        # TODO: нужно ли nan-ы заменять на новый класс?
+        input_df[feat] = encoder.fit_transform(input_df[feat].fillna('NULL'))
+        encoder_dict[feat] = encoder
+
+    return input_df, categorical_feats.tolist(), encoder_dict
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
