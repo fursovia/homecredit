@@ -1,0 +1,11 @@
+{
+   "learning_rate": 0.001,
+   "batch_size": 256,
+   "num_epochs": 1,
+   "margin": 0.05,
+   "beta":0.4,
+   "architecture" : "dense",
+   "generator_type": "batch_all",
+   "loss_type": "triplet",
+   "save_summary_steps": 20
+}
