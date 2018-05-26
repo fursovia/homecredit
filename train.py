@@ -26,7 +26,7 @@ parser.add_argument('--num_gpus', default=1,
 if __name__ == '__main__':
     tf.reset_default_graph()
     tf.logging.set_verbosity(tf.logging.INFO)
-
+    # test line
     # Load the parameters from json file
     args = parser.parse_args()
     json_path = os.path.join(args.model_dir, 'params.json')
