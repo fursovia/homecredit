@@ -19,14 +19,14 @@ parser.add_argument('--data_dir', default='/data/i.fursov/hc/data',
                     help="Directory containing the dataset")
 parser.add_argument('--final_train', default='N',
                     help="Whether to train on a whole dataset")
-parser.add_argument('--num_gpus', type=int, default=4,
+parser.add_argument('--num_gpus', type=int, default=1,
                     help="Number of GPUs to train on")
 
 
 if __name__ == '__main__':
     tf.reset_default_graph()
     tf.logging.set_verbosity(tf.logging.INFO)
-    # test line
+
     # Load the parameters from json file
     args = parser.parse_args()
     json_path = os.path.join(args.model_dir, 'params.json')
@@ -35,6 +35,7 @@ if __name__ == '__main__':
 
     # Define the model
     tf.logging.info("Creating the model...")
+    # TODO: починить параллельное вычисление
     if args.num_gpus > 1:
         distribution = tf.contrib.distribute.MirroredStrategy(num_gpus=args.num_gpus)
     else:
