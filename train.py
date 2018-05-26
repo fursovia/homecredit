@@ -50,6 +50,7 @@ if __name__ == '__main__':
                                        params=params,
                                        config=config)
 
+    # TODO: избавиться от аргумента "final_train" -- всегда должен быть final train
     if args.final_train == 'N':
         # Train the model
         tf.logging.info("Starting training for {} epoch(s).".format(params.num_epochs))
