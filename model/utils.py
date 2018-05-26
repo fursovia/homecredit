@@ -62,4 +62,3 @@ def calculate_cosine_sim(inputs, precalculated_embeddings):
     similarities = tf.matmul(normalized_inputs, normalized_embeds, adjoint_b=True)
 
     return similarities
-
