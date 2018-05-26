@@ -26,7 +26,7 @@ def train_input_fn(data_dir, params):
     dataset = dataset.shuffle(params.train_size)  # whole dataset into the buffer
     dataset = dataset.repeat(params.num_epochs)  # repeat for multiple epochs
     dataset = dataset.batch(params.batch_size)
-    dataset = dataset.prefetch(buffer_size=None) # auto detection of optimal buffer size.
+    dataset = dataset.prefetch(buffer_size=None)
     return dataset
 
 
@@ -47,8 +47,24 @@ def eval_input_fn(data_dir, params):
     dataset = tf.data.Dataset.zip((dataset1, dataset2))
 
     dataset = dataset.batch(params.batch_size)
-    dataset = dataset.prefetch(buffer_size=None) # auto detection of optimal buffer size.
+    dataset = dataset.prefetch(buffer_size=None)
 
+    return dataset
+
+
+def test_input_fn(data_dir, params):
+    """
+    Args:
+        data_dir: (string) path to the data directory
+        params: (Params) contains hyperparameters of the model (ex: `params.num_epochs`)
+    """
+
+    data_ = pickle.load(open(os.path.join(data_dir, 'test/X_te.pkl'), 'rb'))
+    params.train_size = len(data_)
+
+    dataset = tf.data.Dataset.from_tensor_slices(data_)
+    dataset = dataset.batch(params.batch_size)
+    dataset = dataset.prefetch(buffer_size=None)
     return dataset
 
 
