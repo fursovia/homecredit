@@ -16,19 +16,16 @@ def build_model(is_training, sentences, params):
         output: (tf.Tensor) output of the model
     """
 
-    # weights_initializer = tf.random_normal_initializer(stddev=0.1)
-    weights_initializer = tf.truncated_normal_initializer(stddev=0.001)
-
     if params.architecture == 'dense':
         with tf.variable_scope('fc_1'):
-            out = tf.layers.dense(sentences, 200, activation=tf.nn.relu)
+            out = tf.layers.dense(sentences, 256, activation=tf.nn.relu)
 
         with tf.variable_scope('fc_2'):
-            out = tf.layers.dense(out, 100, activation=tf.nn.elu)
+            out = tf.layers.dense(out, 128, activation=tf.nn.elu)
 
         if params.loss_type == 'ATnT':
             with tf.variable_scope('fc_3'):
-                out = tf.layers.dense(out, 32, activation=tf.nn.sigmoid)
+                out = tf.layers.dense(out, 64, activation=tf.nn.sigmoid)
                 # out = tf.layers.dense(out, 128)
                 # out = tf.nn.l2_normalize(out, axis=1)
         else:
@@ -38,22 +35,21 @@ def build_model(is_training, sentences, params):
 
     if params.architecture == 'dense_batchnorm':
         with tf.variable_scope('fc_1'):
-            out = tf.layers.dense(out, 512)
+            out = tf.layers.dense(sentences, 256)
             out = tf.layers.batch_normalization(out, training=is_training)
             out = tf.nn.elu(out)
 
         with tf.variable_scope('fc_2'):
-            out = tf.layers.dense(out, 256)
+            out = tf.layers.dense(out, 128)
             out = tf.layers.batch_normalization(out, training=is_training)
             out = tf.nn.elu(out)
 
         if params.loss_type == 'ATnT':
             with tf.variable_scope('fc_3'):
-                out = tf.layers.dense(out, 128, activation=tf.nn.sigmoid)
+                out = tf.layers.dense(out, 64, activation=tf.nn.sigmoid)
                 # out = tf.layers.dense(out, 128)
                 # out = tf.nn.l2_normalize(out, axis=1)
         else:
             with tf.variable_scope('fc_3'):
-                out = tf.layers.dense(out, 128)
-
+                out = tf.layers.dense(out, 64)
         return out
