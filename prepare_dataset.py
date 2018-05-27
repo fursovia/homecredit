@@ -4,13 +4,34 @@ import pandas as pd
 import numpy as np
 import pickle
 import argparse
+import gc
 import os
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
+from sklearn.model_selection import train_test_split
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='/data/i.fursov/hc/data',
                     help="Directory containing the dataset")
+parser.add_argument('--sample', default='N',
+                    help="Directory containing the dataset")
+
+
+def feature_engineering(app_both,
+                        prev):
+    """Генерим фичи, объединяем таблицы
+    Args:
+        ...
+    Returns:
+        merged_df: таблица со всеми фичами
+    """
+    # предыдущие кредиты
+    agg_funs = {'SK_ID_CURR': 'count', 'AMT_CREDIT': 'sum'}  # num of credits and total_amount
+    prev_apps = prev.groupby('SK_ID_CURR').agg(agg_funs)
+    prev_apps.columns = ['PREV_APP_COUNT', 'TOTAL_PREV_LOAN_AMT']
+    merged_df = app_both.merge(prev_apps, left_on='SK_ID_CURR', right_index=True, how='left')
+    print('Shape after merging with previous apps num data = {}'.format(merged_df.shape))
+    return merged_df
 
 
 def process_dataframe(input_df, encoder_dict=None):
@@ -32,17 +53,90 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print('Reading the data...')
-    train = pd.read_csv('/data/i.fursov/hc/inputs/application_train.csv.zip')
-    test = pd.read_csv('/data/i.fursov/hc/inputs/application_test.csv.zip')
-    prev = pd.read_csv('/data/i.fursov/hc/inputs/previous_application.csv.zip')
-    buro = pd.read_csv('/data/i.fursov/hc/inputs/bureau.csv.zip')
-    buro_balance = pd.read_csv('/data/i.fursov/hc/inputs/bureau_balance.csv.zip')
-    credit_card = pd.read_csv('/data/i.fursov/hc/inputs/credit_card_balance.csv.zip')
-    POS_CASH = pd.read_csv('/data/i.fursov/hc/inputs/POS_CASH_balance.csv.zip')
-    payments = pd.read_csv('/data/i.fursov/hc/inputs/installments_payments.csv.zip')
-    submission = pd.read_csv('/data/i.fursov/hc/inputs/sample_submission.csv.zip')
+    if args.sample == 'Y':
+        sample_size = 10000
+    else:
+        sample_size = None
 
-    Y = train['TARGET']
-    Y = Y.values
-    del train['TARGET']
+    application_train = pd.read_csv('/data/i.fursov/hc/inputs/application_train.csv.zip', nrows=sample_size)
+    application_test = pd.read_csv('/data/i.fursov/hc/inputs/application_test.csv.zip', nrows=sample_size)
+    previous_application = pd.read_csv('/data/i.fursov/hc/inputs/previous_application.csv.zip', nrows=sample_size)
+    bureau = pd.read_csv('/data/i.fursov/hc/inputs/bureau.csv.zip', nrows=sample_size)
+    bureau_balance = pd.read_csv('/data/i.fursov/hc/inputs/bureau_balance.csv.zip', nrows=sample_size)
+    credit_card_balance = pd.read_csv('/data/i.fursov/hc/inputs/credit_card_balance.csv.zip', nrows=sample_size)
+    POS_CASH_balance = pd.read_csv('/data/i.fursov/hc/inputs/POS_CASH_balance.csv.zip', nrows=sample_size)
+    installments_payments = pd.read_csv('/data/i.fursov/hc/inputs/installments_payments.csv.zip', nrows=sample_size)
+    sample_submission = pd.read_csv('/data/i.fursov/hc/inputs/sample_submission.csv.zip', nrows=sample_size)
 
+    len_train = len(application_train)
+    app_both = pd.concat([application_train, application_test])
+
+    merged_df = feature_engineering(app_both, previous_application)
+
+    meta_cols = ['SK_ID_CURR']
+    meta_df = merged_df[meta_cols]
+    merged_df.drop(columns=meta_cols, inplace=True)
+
+    merged_df, categorical_feats, encoder_dict = process_dataframe(input_df=merged_df)
+
+    labels = merged_df.pop('TARGET')
+    labels = labels[:len_train]
+
+    target = np.zeros([len(labels), len(np.unique(labels))])
+    target[:, 0] = labels == 0
+    target[:, 1] = labels == 1
+
+    dangerous_feats = []
+    for feat in categorical_feats:
+        feat_cardinality = len(merged_df[feat].unique())
+        if (feat_cardinality > 10) & (feat_cardinality <= 100):
+            print('Careful: {} has {} unique values'.format(feat, feat_cardinality))
+        if feat_cardinality > 100:
+            categorical_feats.remove(feat)
+            dangerous_feats.append(feat)
+            print('Dropping feat {} as it has {} unique values'.format(feat, feat_cardinality))
+    merged_df.drop(columns=dangerous_feats, inplace=True)
+    merged_df = pd.get_dummies(data=merged_df, columns=categorical_feats)
+    print('Shape after one-hot encoding = {}'.format(merged_df.shape))
+
+    null_counts = merged_df.isnull().sum()
+    null_counts = null_counts[null_counts > 0]
+    null_ratios = null_counts / len(merged_df)
+
+    # Drop columns over x% null
+    null_thresh = 0.8
+    null_cols = null_ratios[null_ratios > null_thresh].index
+    merged_df.drop(columns=null_cols, inplace=True)
+    print('Columns dropped for being over {}% null:'.format(100 * null_thresh))
+    for col in null_cols:
+        print(col)
+
+    merged_df.fillna(merged_df.median(), inplace=True)
+
+    scaler = StandardScaler()
+    merged_df = scaler.fit_transform(merged_df)
+
+    X = merged_df[:len_train]
+    X_te = merged_df[len_train:]
+
+    del merged_df
+    gc.collect()
+
+    X_tr, X_ev, Y_tr, Y_ev = train_test_split(X, target, stratify=target, test_size=0.1, random_state=43)
+
+    # SOME PREPROCESSING
+    # ...
+    # ...
+
+    if args.sample == 'Y':
+        save_path = os.path.join(args.data_dir, 'sample')
+    else:
+        save_path = args.data_dir
+
+    pickle.dump(X_tr, open(os.path.join(save_path, 'train/X_tr.pkl'), 'wb'))
+    pickle.dump(Y_tr, open(os.path.join(save_path, 'train/Y_tr.pkl'), 'wb'))
+    pickle.dump(X_ev, open(os.path.join(save_path, 'eval/X_ev.pkl'), 'wb'))
+    pickle.dump(Y_ev, open(os.path.join(save_path, 'eval/X_tr.pkl'), 'wb'))
+    pickle.dump(X, open(os.path.join(save_path, 'X.pkl'), 'wb'))
+    pickle.dump(target, open(os.path.join(save_path, 'Y.pkl'), 'wb'))
+    pickle.dump(X_te, open(os.path.join(save_path, 'test/X_te.pkl'), 'wb'))
