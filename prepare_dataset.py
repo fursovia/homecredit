@@ -18,7 +18,11 @@ parser.add_argument('--sample', default='N',
 
 
 def feature_engineering(app_both,
-                        prev):
+                        previous_application,
+                        credit_card_balance,
+                        bureau,
+                        POS_CASH_balance,
+                        installments_payments):
     """Генерим фичи, объединяем таблицы
     Args:
         ...
@@ -26,11 +30,65 @@ def feature_engineering(app_both,
         merged_df: таблица со всеми фичами
     """
     # предыдущие кредиты
+    print('Shape before merging with previous apps num data = {}'.format(app_both.shape))
     agg_funs = {'SK_ID_CURR': 'count', 'AMT_CREDIT': 'sum'}  # num of credits and total_amount
-    prev_apps = prev.groupby('SK_ID_CURR').agg(agg_funs)
+    prev_apps = previous_application.groupby('SK_ID_CURR').agg(agg_funs)
     prev_apps.columns = ['PREV_APP_COUNT', 'TOTAL_PREV_LOAN_AMT']
     merged_df = app_both.merge(prev_apps, left_on='SK_ID_CURR', right_index=True, how='left')
     print('Shape after merging with previous apps num data = {}'.format(merged_df.shape))
+
+    prev_apps_avg = previous_application.groupby('SK_ID_CURR').mean()
+    merged_df = merged_df.merge(prev_apps_avg, left_on='SK_ID_CURR', right_index=True,
+                                how='left', suffixes=['', '_PAVG'])
+    print('Shape after merging with previous apps num data = {}'.format(merged_df.shape))
+
+    prev_app_df, cat_feats, _ = process_dataframe(previous_application)
+    prev_apps_cat_avg = prev_app_df[cat_feats + ['SK_ID_CURR']].groupby('SK_ID_CURR')\
+        .agg({k: lambda x: str(x.mode().iloc[0]) for k in cat_feats})
+    merged_df = merged_df.merge(prev_apps_cat_avg, left_on='SK_ID_CURR', right_index=True,
+                                how='left', suffixes=['', '_BAVG'])
+    print('Shape after merging with previous apps cat data = {}'.format(merged_df.shape))
+
+    wm = lambda x: np.average(x, weights=-1 / credit_card_balance.loc[x.index, 'MONTHS_BALANCE'])
+    credit_card_avgs = credit_card_balance.groupby('SK_ID_CURR').agg(wm)
+    merged_df = merged_df.merge(credit_card_avgs, left_on='SK_ID_CURR', right_index=True,
+                                how='left', suffixes=['', '_CCAVG'])
+
+    most_recent_index = credit_card_balance.groupby('SK_ID_CURR')['MONTHS_BALANCE'].idxmax()
+    cat_feats = credit_card_balance.columns[credit_card_balance.dtypes == 'object'].tolist() + ['SK_ID_CURR']
+    merged_df = merged_df.merge(credit_card_balance.loc[most_recent_index, cat_feats],
+                                left_on='SK_ID_CURR',
+                                right_on='SK_ID_CURR',
+                                how='left',
+                                suffixes=['', '_CCAVG'])
+    print('Shape after merging with credit card data = {}'.format(merged_df.shape))
+
+    credit_bureau_avgs = bureau.groupby('SK_ID_CURR').mean()
+    merged_df = merged_df.merge(credit_bureau_avgs, left_on='SK_ID_CURR', right_index=True,
+                                how='left', suffixes=['', '_BAVG'])
+    print('Shape after merging with credit bureau data = {}'.format(merged_df.shape))
+
+    wm = lambda x: np.average(x, weights=-1/POS_CASH_balance.loc[x.index, 'MONTHS_BALANCE'])
+    f = {'CNT_INSTALMENT': wm, 'CNT_INSTALMENT_FUTURE': wm, 'SK_DPD': wm, 'SK_DPD_DEF': wm}
+    cash_avg = POS_CASH_balance.groupby('SK_ID_CURR')\
+        ['CNT_INSTALMENT','CNT_INSTALMENT_FUTURE', 'SK_DPD', 'SK_DPD_DEF'].agg(f)
+    merged_df = merged_df.merge(cash_avg, left_on='SK_ID_CURR', right_index=True,
+                                how='left', suffixes=['', '_CAVG'])
+
+    most_recent_index = POS_CASH_balance.groupby('SK_ID_CURR')['MONTHS_BALANCE'].idxmax()
+    cat_feats = POS_CASH_balance.columns[POS_CASH_balance.dtypes == 'object'].tolist()  + ['SK_ID_CURR']
+    merged_df = merged_df.merge(POS_CASH_balance.loc[most_recent_index, cat_feats],
+                                left_on='SK_ID_CURR',
+                                right_on='SK_ID_CURR',
+                                how='left',
+                                suffixes=['', '_CAVG'])
+    print('Shape after merging with pos cash data = {}'.format(merged_df.shape))
+
+    ins_avg = installments_payments.groupby('SK_ID_CURR').mean()
+    merged_df = merged_df.merge(ins_avg, left_on='SK_ID_CURR', right_index=True,
+                                how='left', suffixes=['', '_IAVG'])
+    print('Shape after merging with installments data = {}'.format(merged_df.shape))
+
     return merged_df
 
 
