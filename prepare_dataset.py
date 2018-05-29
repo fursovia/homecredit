@@ -71,7 +71,7 @@ def feature_engineering(app_both,
     wm = lambda x: np.average(x, weights=-1/POS_CASH_balance.loc[x.index, 'MONTHS_BALANCE'])
     f = {'CNT_INSTALMENT': wm, 'CNT_INSTALMENT_FUTURE': wm, 'SK_DPD': wm, 'SK_DPD_DEF': wm}
     cash_avg = POS_CASH_balance.groupby('SK_ID_CURR')\
-        ['CNT_INSTALMENT','CNT_INSTALMENT_FUTURE', 'SK_DPD', 'SK_DPD_DEF'].agg(f)
+        ['CNT_INSTALMENT', 'CNT_INSTALMENT_FUTURE', 'SK_DPD', 'SK_DPD_DEF'].agg(f)
     merged_df = merged_df.merge(cash_avg, left_on='SK_ID_CURR', right_index=True,
                                 how='left', suffixes=['', '_CAVG'])
 
@@ -128,8 +128,12 @@ if __name__ == '__main__':
 
     len_train = len(application_train)
     app_both = pd.concat([application_train, application_test])
-
-    merged_df = feature_engineering(app_both, previous_application)
+    merged_df = feature_engineering(app_both,
+                                    previous_application,
+                                    credit_card_balance,
+                                    bureau,
+                                    POS_CASH_balance,
+                                    installments_payments)
 
     meta_cols = ['SK_ID_CURR']
     meta_df = merged_df[meta_cols]
@@ -139,10 +143,6 @@ if __name__ == '__main__':
 
     labels = merged_df.pop('TARGET')
     labels = labels[:len_train]
-
-    target = np.zeros([len(labels), len(np.unique(labels))])
-    target[:, 0] = labels == 0
-    target[:, 1] = labels == 1
 
     dangerous_feats = []
     for feat in categorical_feats:
@@ -180,11 +180,10 @@ if __name__ == '__main__':
     del merged_df
     gc.collect()
 
-    X_tr, X_ev, Y_tr, Y_ev = train_test_split(X, target, stratify=target, test_size=0.1, random_state=43)
-
-    # SOME PREPROCESSING
-    # ...
-    # ...
+    X_tr, X_ev, Y_tr, Y_ev = train_test_split(X, labels,
+                                              stratify=labels,
+                                              test_size=0.1,
+                                              random_state=43)
 
     if args.sample == 'Y':
         save_path = os.path.join(args.data_dir, 'sample')
@@ -196,5 +195,5 @@ if __name__ == '__main__':
     pickle.dump(X_ev, open(os.path.join(save_path, 'eval/X_ev.pkl'), 'wb'))
     pickle.dump(Y_ev, open(os.path.join(save_path, 'eval/X_tr.pkl'), 'wb'))
     pickle.dump(X, open(os.path.join(save_path, 'X.pkl'), 'wb'))
-    pickle.dump(target, open(os.path.join(save_path, 'Y.pkl'), 'wb'))
+    pickle.dump(labels, open(os.path.join(save_path, 'Y.pkl'), 'wb'))
     pickle.dump(X_te, open(os.path.join(save_path, 'test/X_te.pkl'), 'wb'))
