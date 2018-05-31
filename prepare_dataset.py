@@ -188,12 +188,12 @@ if __name__ == '__main__':
     if args.sample == 'Y':
         save_path = os.path.join(args.data_dir, 'sample')
     else:
-        save_path = args.data_dir
+        save_path = os.path.join(args.data_dir, 'data')
 
-    pickle.dump(X_tr, open(os.path.join(save_path, 'data/train/X_tr.pkl'), 'wb'))
-    pickle.dump(Y_tr, open(os.path.join(save_path, 'data/train/Y_tr.pkl'), 'wb'))
-    pickle.dump(X_ev, open(os.path.join(save_path, 'data/eval/X_ev.pkl'), 'wb'))
-    pickle.dump(Y_ev, open(os.path.join(save_path, 'data/eval/X_tr.pkl'), 'wb'))
-    pickle.dump(X, open(os.path.join(save_path, 'data/X.pkl'), 'wb'))
-    pickle.dump(labels, open(os.path.join(save_path, 'data/Y.pkl'), 'wb'))
-    pickle.dump(X_te, open(os.path.join(save_path, 'data/test/X_te.pkl'), 'wb'))
+    pickle.dump(X_tr, open(os.path.join(save_path, 'train/X_tr.pkl'), 'wb'))
+    pickle.dump(Y_tr, open(os.path.join(save_path, 'train/Y_tr.pkl'), 'wb'))
+    pickle.dump(X_ev, open(os.path.join(save_path, 'eval/X_ev.pkl'), 'wb'))
+    pickle.dump(Y_ev, open(os.path.join(save_path, 'eval/X_tr.pkl'), 'wb'))
+    pickle.dump(X, open(os.path.join(save_path, 'X.pkl'), 'wb'))
+    pickle.dump(labels, open(os.path.join(save_path, 'Y.pkl'), 'wb'))
+    pickle.dump(X_te, open(os.path.join(save_path, 'test/X_te.pkl'), 'wb'))
