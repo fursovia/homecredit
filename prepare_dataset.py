@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', default='/data/i.fursov/hc/data',
+parser.add_argument('--data_dir', default='/data/i.fursov/hc',
                     help="Directory containing the dataset")
 parser.add_argument('--sample', default='N',
                     help="Directory containing the dataset")
@@ -116,15 +116,15 @@ if __name__ == '__main__':
     else:
         sample_size = None
 
-    application_train = pd.read_csv('/data/i.fursov/hc/inputs/application_train.csv.zip', nrows=sample_size)
-    application_test = pd.read_csv('/data/i.fursov/hc/inputs/application_test.csv.zip', nrows=sample_size)
-    previous_application = pd.read_csv('/data/i.fursov/hc/inputs/previous_application.csv.zip', nrows=sample_size)
-    bureau = pd.read_csv('/data/i.fursov/hc/inputs/bureau.csv.zip', nrows=sample_size)
-    bureau_balance = pd.read_csv('/data/i.fursov/hc/inputs/bureau_balance.csv.zip', nrows=sample_size)
-    credit_card_balance = pd.read_csv('/data/i.fursov/hc/inputs/credit_card_balance.csv.zip', nrows=sample_size)
-    POS_CASH_balance = pd.read_csv('/data/i.fursov/hc/inputs/POS_CASH_balance.csv.zip', nrows=sample_size)
-    installments_payments = pd.read_csv('/data/i.fursov/hc/inputs/installments_payments.csv.zip', nrows=sample_size)
-    sample_submission = pd.read_csv('/data/i.fursov/hc/inputs/sample_submission.csv.zip', nrows=sample_size)
+    application_train = pd.read_csv(os.path.join(args.data_dir, 'inputs/application_train.csv.zip'), nrows=sample_size)
+    application_test = pd.read_csv(os.path.join(args.data_dir, 'inputs/application_test.csv.zip'), nrows=sample_size)
+    previous_application = pd.read_csv(os.path.join(args.data_dir, 'nputs/previous_application.csv.zip'), nrows=sample_size)
+    bureau = pd.read_csv(os.path.join(args.data_dir, 'inputs/bureau.csv.zip'), nrows=sample_size)
+    bureau_balance = pd.read_csv(os.path.join(args.data_dir, 'inputs/bureau_balance.csv.zip'), nrows=sample_size)
+    credit_card_balance = pd.read_csv(os.path.join(args.data_dir, 'inputs/credit_card_balance.csv.zip'), nrows=sample_size)
+    POS_CASH_balance = pd.read_csv(os.path.join(args.data_dir, 'nputs/POS_CASH_balance.csv.zip'), nrows=sample_size)
+    installments_payments = pd.read_csv(os.path.join(args.data_dir, 'inputs/installments_payments.csv.zip'), nrows=sample_size)
+    sample_submission = pd.read_csv(os.path.join(args.data_dir, 'inputs/sample_submission.csv.zip'), nrows=sample_size)
 
     len_train = len(application_train)
     app_both = pd.concat([application_train, application_test])
@@ -190,10 +190,10 @@ if __name__ == '__main__':
     else:
         save_path = args.data_dir
 
-    pickle.dump(X_tr, open(os.path.join(save_path, 'train/X_tr.pkl'), 'wb'))
-    pickle.dump(Y_tr, open(os.path.join(save_path, 'train/Y_tr.pkl'), 'wb'))
-    pickle.dump(X_ev, open(os.path.join(save_path, 'eval/X_ev.pkl'), 'wb'))
-    pickle.dump(Y_ev, open(os.path.join(save_path, 'eval/X_tr.pkl'), 'wb'))
-    pickle.dump(X, open(os.path.join(save_path, 'X.pkl'), 'wb'))
-    pickle.dump(labels, open(os.path.join(save_path, 'Y.pkl'), 'wb'))
-    pickle.dump(X_te, open(os.path.join(save_path, 'test/X_te.pkl'), 'wb'))
+    pickle.dump(X_tr, open(os.path.join(save_path, 'data/train/X_tr.pkl'), 'wb'))
+    pickle.dump(Y_tr, open(os.path.join(save_path, 'data/train/Y_tr.pkl'), 'wb'))
+    pickle.dump(X_ev, open(os.path.join(save_path, 'data/eval/X_ev.pkl'), 'wb'))
+    pickle.dump(Y_ev, open(os.path.join(save_path, 'data/eval/X_tr.pkl'), 'wb'))
+    pickle.dump(X, open(os.path.join(save_path, 'data/X.pkl'), 'wb'))
+    pickle.dump(labels, open(os.path.join(save_path, 'data/Y.pkl'), 'wb'))
+    pickle.dump(X_te, open(os.path.join(save_path, 'data/test/X_te.pkl'), 'wb'))
