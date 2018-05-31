@@ -113,8 +113,10 @@ if __name__ == '__main__':
     print('Reading the data...')
     if args.sample == 'Y':
         sample_size = 1000
+        save_path = os.path.join(args.data_dir, 'sample')
     else:
         sample_size = None
+        save_path = os.path.join(args.data_dir, 'data')
 
     application_train = pd.read_csv(os.path.join(args.data_dir, 'inputs/application_train.csv.zip'), nrows=sample_size)
     application_test = pd.read_csv(os.path.join(args.data_dir, 'inputs/application_test.csv.zip'), nrows=sample_size)
@@ -184,11 +186,6 @@ if __name__ == '__main__':
                                               stratify=labels,
                                               test_size=0.1,
                                               random_state=43)
-
-    if args.sample == 'Y':
-        save_path = os.path.join(args.data_dir, 'sample')
-    else:
-        save_path = os.path.join(args.data_dir, 'data')
 
     pickle.dump(X_tr, open(os.path.join(save_path, 'train/X_tr.pkl'), 'wb'))
     pickle.dump(Y_tr, open(os.path.join(save_path, 'train/Y_tr.pkl'), 'wb'))
