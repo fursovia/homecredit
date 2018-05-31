@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
     meta_cols = ['SK_ID_CURR']
     meta_df = merged_df[meta_cols]
-    merged_df.drop(columns=meta_cols, inplace=True)
+    merged_df.drop(meta_cols, inplace=True)
 
     merged_df, categorical_feats, encoder_dict = process_dataframe(input_df=merged_df)
 
