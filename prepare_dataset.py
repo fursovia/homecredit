@@ -6,7 +6,7 @@ import pickle
 import argparse
 import gc
 import os
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
 
@@ -110,6 +110,7 @@ def process_dataframe(input_df, encoder_dict=None):
 if __name__ == '__main__':
     args = parser.parse_args()
 
+    # ПОДГРУЖАЕМ ДАННЫЕ
     print('Reading the data...')
     if args.sample == 'Y':
         sample_size = 1000
@@ -128,6 +129,7 @@ if __name__ == '__main__':
     installments_payments = pd.read_csv(os.path.join(args.data_dir, 'inputs/installments_payments.csv.zip'), nrows=sample_size)
     sample_submission = pd.read_csv(os.path.join(args.data_dir, 'inputs/sample_submission.csv.zip'), nrows=sample_size)
 
+    # ГЕНЕРИМ ФИЧИ
     len_train = len(application_train)
     app_both = pd.concat([application_train, application_test])
     merged_df = feature_engineering(app_both,
@@ -144,8 +146,9 @@ if __name__ == '__main__':
     merged_df, categorical_feats, encoder_dict = process_dataframe(input_df=merged_df)
 
     labels = merged_df.pop('TARGET')
-    labels = labels[:len_train]
+    labels = np.array(labels[:len_train], int)
 
+    # УДАЛЯЕМ КАТЕГОРИАЛЬНЫЕ ФИЧИ
     dangerous_feats = []
     for feat in categorical_feats:
         feat_cardinality = len(merged_df[feat].unique())
@@ -159,20 +162,22 @@ if __name__ == '__main__':
     merged_df = pd.get_dummies(data=merged_df, columns=categorical_feats)
     print('Shape after one-hot encoding = {}'.format(merged_df.shape))
 
+    # УДАЛЯЕМ ФИЧИ С NANs
     null_counts = merged_df.isnull().sum()
     null_counts = null_counts[null_counts > 0]
     null_ratios = null_counts / len(merged_df)
 
-    # Drop columns over x% null
-    null_thresh = 0.8
+    null_thresh = 0.5
     null_cols = null_ratios[null_ratios > null_thresh].index
     merged_df.drop(columns=null_cols, inplace=True)
     print('Columns dropped for being over {}% null:'.format(100 * null_thresh))
-    for col in null_cols:
-        print(col)
+    # for col in null_cols:
+    #     print(col)
 
+    # ЗАМЕНЯЕМ НАНЫ МЕДИАННЫМИ ЗНАЧЕНИЯМИ
     merged_df.fillna(merged_df.median(), inplace=True)
 
+    # СКЕЙЛИМ ФИЧИ
     scaler = StandardScaler()
     merged_df = scaler.fit_transform(merged_df)
 
@@ -182,6 +187,7 @@ if __name__ == '__main__':
     del merged_df
     gc.collect()
 
+    # ДЕЛИМ И СОХРАНЯЕМ
     X_tr, X_ev, Y_tr, Y_ev = train_test_split(X, labels,
                                               stratify=labels,
                                               test_size=0.1,
