@@ -118,11 +118,11 @@ if __name__ == '__main__':
 
     application_train = pd.read_csv(os.path.join(args.data_dir, 'inputs/application_train.csv.zip'), nrows=sample_size)
     application_test = pd.read_csv(os.path.join(args.data_dir, 'inputs/application_test.csv.zip'), nrows=sample_size)
-    previous_application = pd.read_csv(os.path.join(args.data_dir, 'nputs/previous_application.csv.zip'), nrows=sample_size)
+    previous_application = pd.read_csv(os.path.join(args.data_dir, 'inputs/previous_application.csv.zip'), nrows=sample_size)
     bureau = pd.read_csv(os.path.join(args.data_dir, 'inputs/bureau.csv.zip'), nrows=sample_size)
     bureau_balance = pd.read_csv(os.path.join(args.data_dir, 'inputs/bureau_balance.csv.zip'), nrows=sample_size)
     credit_card_balance = pd.read_csv(os.path.join(args.data_dir, 'inputs/credit_card_balance.csv.zip'), nrows=sample_size)
-    POS_CASH_balance = pd.read_csv(os.path.join(args.data_dir, 'nputs/POS_CASH_balance.csv.zip'), nrows=sample_size)
+    POS_CASH_balance = pd.read_csv(os.path.join(args.data_dir, 'inputs/POS_CASH_balance.csv.zip'), nrows=sample_size)
     installments_payments = pd.read_csv(os.path.join(args.data_dir, 'inputs/installments_payments.csv.zip'), nrows=sample_size)
     sample_submission = pd.read_csv(os.path.join(args.data_dir, 'inputs/sample_submission.csv.zip'), nrows=sample_size)
 
