@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     print('Reading the data...')
     if args.sample == 'Y':
-        sample_size = 10000
+        sample_size = 1000
     else:
         sample_size = None
 
